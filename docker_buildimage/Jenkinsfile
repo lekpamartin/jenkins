@@ -1,0 +1,31 @@
+node {
+	stage("$params.IMAGE_NAME") {
+		git "$params.IMAGE_REPO"
+		script {
+			BRANCH_STABLE = sh (script: "grep stable latest.json | cut -d '\"' -f4", returnStdout: true)
+		}
+	}
+
+	for (i in [ "master", "$BRANCH_STABLE" ]) {
+		stage("[Git] Switching to branch $i") {
+			sh '''#!/bin/bash
+				git checkout ${i} -f
+			'''
+			script  {
+				IMAGE_TAG = sh (script: "grep version package.json | cut -d '\"' -f4", returnStdout: true).trim()
+			}
+		}
+            
+		stage("[Sonarqube] Scanning branch $i (version $IMAGE_TAG)") {
+			echo "Scanning $i"
+		}
+            
+		stage("[Personnalisation] Patching branch $i (version $IMAGE_TAG)") {
+			echo "Patching $i"
+		}
+            
+		stage("[Docker] Building image branch $i (version $IMAGE_TAG)") {
+			def customImage = docker.build("$params.IMAGE_NAME:$IMAGE_TAG", "--label 'maintaner=My company' --force-rm --no-cache --build-arg http_proxy='$params.HTTP_PROXY' --build-arg https_proxy='$params.HTTPS_PROXY' .")
+		}
+	}
+}

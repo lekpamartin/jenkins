@@ -1,0 +1,8 @@
+docker build -t ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} \
+	--force-rm \
+	--no-cache \
+	-f ${DOCKERFILE} \
+	--label "maintaner=My company"
+	--build-arg http_proxy="${PROXY_HTTP}" \
+	--build-arg https_proxy="${PROXY_HTTPS}" \
+	--build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` .
