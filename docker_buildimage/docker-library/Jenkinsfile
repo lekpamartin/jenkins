@@ -17,12 +17,12 @@ node {
 		}
 
 		stage("[Personnalisation] Patching $MAJOR_VERSION (version $IMAGE_VERSION for $OS)") {
-			sh "sed -ie \"/FROM/a ENV http_proxy='http://fr.proxy.saint-gobain.com:8080' https_proxy='http://fr.proxy.saint-gobain.com:8084'\" $MAJOR_VERSION/$OS/Dockerfile; sed -i 's,wget,apk update; apk add wget; wget,' $MAJOR_VERSION/$OS/Dockerfile"
+			sh "sed -ie \"/FROM/a ENV http_proxy='$params.HTTP_PROXY' https_proxy='$params.HTTPS_PROXY'\" $MAJOR_VERSION/$OS/Dockerfile; sed -i 's,wget,apk update; apk add wget; wget,' $MAJOR_VERSION/$OS/Dockerfile"
 		}
             
 		stage("[Docker] Building image $MAJOR_VERSION (version $IMAGE_VERSION for $OS)") {
 			dir("$MAJOR_VERSION/$OS") {
-				def customImage = docker.build("harbor.digital-solutions.saint-gobain.com/ops-software-factory/$params.IMAGE_NAME:$MAJOR_VERSION-$OS", "--label 'maintaner=My company' --force-rm --no-cache --build-arg http_proxy='$params.HTTP_PROXY' --build-arg https_proxy='$params.HTTPS_PROXY' .")
+				def customImage = docker.build("$params.IMAGE_DEST/$params.IMAGE_NAME:$MAJOR_VERSION-$OS", "--label 'maintaner=My company' --force-rm --no-cache --build-arg http_proxy='$params.HTTP_PROXY' --build-arg https_proxy='$params.HTTPS_PROXY' .")
 			}
 		}
 	}
