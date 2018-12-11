@@ -10,17 +10,17 @@ node {
 	for (i in LIST) {
 		MAJOR_VERSION = sh (script: "echo $i | awk -F \"/\" '{print \$2}'", returnStdout: true).trim()
 		OS = sh (script: "echo $i | awk -F \"/\" '{print \$3}'", returnStdout: true).trim()
-		stage("Switching to $MAJOR_VERSION") {
+		stage("Switching to $MAJOR_VERSION for $OS") {
 			script  {
-				IMAGE_VERSION = sh (script: "grep '_VERSION' ${MAJOR_VERSION}/${OS}/Dockerfile | cut -d ' ' -f3", returnStdout: true).trim()
+				IMAGE_VERSION = sh (script: "grep -m 1 '_VERSION' ${MAJOR_VERSION}/${OS}/Dockerfile | cut -d ' ' -f3", returnStdout: true).trim()
 			}
 		}
 
-		stage("[Personnalisation] Patching $MAJOR_VERSION (version $IMAGE_VERSION)") {
+		stage("[Personnalisation] Patching $MAJOR_VERSION (version $IMAGE_VERSION for $OS)") {
 			sh "sed -ie \"/FROM/a ENV http_proxy='http://fr.proxy.saint-gobain.com:8080' https_proxy='http://fr.proxy.saint-gobain.com:8084'\" $MAJOR_VERSION/$OS/Dockerfile; sed -i 's,wget,apk update; apk add wget; wget,' $MAJOR_VERSION/$OS/Dockerfile"
 		}
             
-		stage("[Docker] Building image $MAJOR_VERSION (version $IMAGE_VERSION)") {
+		stage("[Docker] Building image $MAJOR_VERSION (version $IMAGE_VERSION for $OS)") {
 			dir("$MAJOR_VERSION/$OS") {
 				def customImage = docker.build("harbor.digital-solutions.saint-gobain.com/ops-software-factory/$params.IMAGE_NAME:$MAJOR_VERSION-$OS", "--label 'maintaner=My company' --force-rm --no-cache --build-arg http_proxy='$params.HTTP_PROXY' --build-arg https_proxy='$params.HTTPS_PROXY' .")
 			}
