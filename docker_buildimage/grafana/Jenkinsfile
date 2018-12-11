@@ -6,11 +6,9 @@ node {
 		}
 	}
 
-	for (i in [ "master", "$BRANCH_STABLE" ]) {
+	for (i in [ "master", "v$BRANCH_STABLE" ]) {
 		stage("[Git] Switching to branch $i") {
-			sh '''#!/bin/bash
-				git checkout ${i} -f
-			'''
+			checkout([$class: 'GitSCM', branches: [[name: "$i"]], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[url: "$params.IMAGE_REPO"]]])
 			script  {
 				IMAGE_TAG = sh (script: "grep version package.json | cut -d '\"' -f4", returnStdout: true).trim()
 			}
